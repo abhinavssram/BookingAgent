@@ -1,0 +1,19 @@
+This text is information to how I came up with particular tech stack within this project
+
+
+1. Python vs Nodejs, Pick: python
+- Available LLM APIs SDKm frameworks like langchain if want to test with 
+- To learn development in python
+
+2. Google calendar vs cal.com, Pick: Google calendar
+- Mainly to understand the Oauth2.0 flow
+- Implement raw user consent flow & DB
+
+3. FastApi vs flask, Pick: FastApi
+- Easy to development 
+- Inbuilt validation libraries like Pydantic
+- researched about the high concurrency better than flask
+
+
+
+

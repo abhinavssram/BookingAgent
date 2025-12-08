@@ -1,0 +1,4 @@
+Oauth2.0
+
+https://auth0.com/docs/get-started/authentication-and-authorization-flow/which-oauth-2-0-flow-should-i-use
+

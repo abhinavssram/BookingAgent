@@ -1,5 +1,9 @@
+from llm_config.config import LLMConfig
+
 def main():
-    print("Hello from bookingagent!")
+    llm_config = LLMConfig()
+    response = llm_config.call_anthropic("Hello, how are you?")
+    print(response)
 
 
 if __name__ == "__main__":
