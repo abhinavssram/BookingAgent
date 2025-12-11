@@ -85,22 +85,26 @@ class GoogleOAuthService:
         
         if user:
             # Update existing user
-            user.google_tokens = tokens
+            user.google_access_token = tokens["token"]
+            user.google_refresh_token = tokens["refresh_token"]
+            user.google_token_expiry = tokens["expiry"]
             user.email = email
         else:
             # Create new user
             user = User(
                 id=user_id,
                 email=email,
-                google_tokens=tokens
+                google_access_token=tokens["token"],
+                google_refresh_token=tokens["refresh_token"],
+                google_token_expiry=tokens["expiry"]
             )
             db.add(user)
         
-        db.commit()
-        db.refresh(user)
+        db.commit() # synchronous blocking operation
+        db.refresh(user) # synchronous blocking operation
         return user
 
-    def get_user_info(self, access_token: str) -> dict:  # <-- Add 'self,'
+    def get_user_info(self, access_token: str) -> tuple[str, str]:
         """
         Fetch user info (email, name) from Google using access token
         """
@@ -112,10 +116,5 @@ class GoogleOAuthService:
         service = build('oauth2', 'v2', credentials=creds)
         user_info = service.userinfo().get().execute()
         
-        return {
-            "email": user_info.get("email"),
-            "name": user_info.get("name"),
-            "picture": user_info.get("picture"),
-            "verified_email": user_info.get("verified_email")
-        }
+        return user_info.get("email"), user_info.get("name") if user_info.get("name") else "Unknown Name"
 google_oauth_service = GoogleOAuthService()

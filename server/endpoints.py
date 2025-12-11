@@ -26,14 +26,13 @@ def oauth_callback(code: str, state: str, db: Session = Depends(get_db)):
     tokens = google_oauth_service.exchange_code_for_tokens(code)
     
     # Fetch email from Google's userinfo endpoint
-    user_info = google_oauth_service.get_user_info(tokens["token"])  # Returns a dict
-    google_email = user_info["email"]  # Extract email from dict
+    google_email, google_name = google_oauth_service.get_user_info(tokens["token"])  # Returns a dict
     
     # Create/update user with their actual Google email
-    user = google_oauth_service.save_tokens(db, google_email, google_email, tokens)
+    user = google_oauth_service.save_tokens(db, session_id, google_email, tokens)
     
     return {
         "message": "Connected!", 
         "email": google_email,
-        "name": user_info.get("name")  # Also return the name
+        "name": google_name  # Also return the name
     }
