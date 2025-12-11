@@ -23,16 +23,16 @@ class GoogleCalendarService:
         slots = response['calendars']['primary']
         return slots
     
-    # def book_slot(self, slot: dict):
-    #     body = {
-    #         "summary": "Meeting",
-    #         "description": "Meeting with John Doe",
-    #         "start": {
-    #             "dateTime": slot["start"],
-    #         },
-    #         "end": {
-    #             "dateTime": slot["end"],
-    #         }
-    #     }
-    #     response = self.client.events().insert(calendarId='primary', body=body).execute()
-    #     return response
+    def book_slot(self, slot: dict):
+        body = {
+            "summary": slot["summary"],
+            "description": slot["description"],
+            "start": {
+                "dateTime": slot["start"]["dateTime"],
+            },
+            "end": {
+                "dateTime": slot["end"]["dateTime"],
+            }
+        }
+        response = self.client.events().insert(calendarId='primary', body=body).execute()
+        return response

@@ -62,3 +62,21 @@ def get_slots(email: str, db: Session = Depends(get_db)):
         # Catch any errors during the refresh or API call
         print(f"Error accessing calendar for {email}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch slots: {e}")
+
+@router.post("/book-slot/{email}")
+def book_slot(email: str, slot: dict, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.google_refresh_token:
+        raise HTTPException(status_code=403, detail="User has not authorized calendar access.")
+    
+    try:
+        creds = google_oauth_service.refresh_and_get_credentials(db, user)
+        google_calendar_service = GoogleCalendarService(creds)
+        response = google_calendar_service.book_slot(slot)
+        return {"message": "Slot booked successfully", "response": response}
+    except Exception as e:
+        print(f"Error booking slot for {email}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to book slot: {e}")
