@@ -1,8 +1,7 @@
-from llm_config.config import LLMConfig
-
+from brain.llm_config.config import LLMConfig   
 def main():
     llm_config = LLMConfig()
-    response = llm_config.call_anthropic("Hello, how are you?")
+    response = llm_config.call_groq("Hello, how are you?")
     print(response)
 
 
