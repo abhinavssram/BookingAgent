@@ -6,11 +6,11 @@ class GoogleCalendarService:
     def __init__(self, creds: Credentials): 
         self.client = build('calendar', 'v3', credentials=creds)
 
-    def get_slots(self):
+    def get_slots(self, time_min: str, time_max: str):
 
         body = {
-            "timeMin": "2025-12-15T00:00:00Z",
-            "timeMax": "2025-12-16T23:59:59Z",
+            "timeMin": time_min,
+            "timeMax": time_max,
             "items": [
                 {"id": "primary"}
             ]

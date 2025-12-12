@@ -34,4 +34,46 @@ workflow:
     You have tools at your disposal to assist the user with the task.
 '''
 
+from brain.llm_config.config import LLMConfig
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+from brain.tools.slots_tool import SlotTool
+from langgraph.graph import MessagesState
 
+# class BookingAgent:
+#    def __init__(self, llm_config: LLMConfig):
+#       self.llm_config = LLMConfig()
+#       self.llm_with_tools = self.llm_config.llm.bind_tools(SlotTool.tool_by_name)
+
+#    def llm_call(self, messages: MessagesState):
+#       return {
+#         "messages": [
+#             llm_with_tools.invoke(
+#                 [
+#                     SystemMessage(
+#                         content="You are a helpful assistant tasked with performing arithmetic on a set of inputs."
+#                     )
+#                 ]
+#                 + state["messages"]
+#             )
+#         ]
+#     }
+   
+#    def create_graph(self, query: str):
+
+#       state = StateGraph(START, END)
+
+#       # nodes
+#       state.add_node("user_query", self.user_query)
+#       state.add_node("llm_response", self.llm_response)
+#       state.add_node("tool_response", self.tool_response)
+#       state.add_node("book_slot", self.book_slot)
+#       state.add_node("get_slots", self.get_slots)
+#       state.add_node("cancel_slot", self.cancel_slot)
+#       state.add_node("reschedule_slot", self.reschedule_slot)
+#       state.add_edge(START, "user_query")
+#       state.add_edge("user_query", "llm_response")
+#       state.add_edge("llm_response", "tool_response")
+#       state.add_edge("tool_response", "book_slot")
+#       state.add_edge("tool_response", "get_slots")
+#       state.add_edge("tool_response", "cancel_slot")
