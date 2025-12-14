@@ -2,3 +2,17 @@ Oauth2.0
 
 https://auth0.com/docs/get-started/authentication-and-authorization-flow/which-oauth-2-0-flow-should-i-use
 
+- Using @tool decorator on instance methods — the decorator doesn't preserve self binding when the tool is invoked by LangChain.
+- Accessing slot_tool_instance.get_slots with @tool — returns a tool object that loses the instance context, causing "missing 1 required positional argument: 'self'".
+
+Bound methods:
+- Bound method: instance.method — self is already bound, so instance.method() works.
+- Unbound method: Class.method — requires passing self explicitly.
+With @tool on instance methods: accessing instance.method returns a tool wrapper that doesn't preserve self, so invocation fails.
+Solution: use StructuredTool.from_function(instance.method) — this wraps the bound method and preserves self during invocation.
+Final working pattern:
+- Plain instance methods in SlotTool (no @tool decorator).
+- Use StructuredTool.from_function(instance.method, ...) in config.py to create tools that preserve binding.
+
+
+Always maintain the messagesInfo all messages between user, human, AI, tool messages of an user in a flow  

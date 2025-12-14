@@ -1,79 +1,96 @@
-'''
-I need the llm agent to book a slot for the user and converse to & from until the slot is booked;
-The timezone info is from the user
-the agent conversation should happend from the a little hovered chat window which resembles like call  
-For each conversation/query the agent should pick the appropriate tool to use and or ask for more information needed to book the slot
-
-
-workflow: 
- user inputs query:
-
- query types:
-  - simple hello/hi 
-  - slot availability
-  - book a slot
-  - cancel a slot
-  - reschedule a slot
- 
-
- Tools:
-    - get_slots: to get the slots from the google calendar
-    - book_slot: to book a slot on the google calendar
-
- System Prompt:
-    You are helpful assistant that helps user with information related to available slots.
-    You can assist the user with booking a slot, get the availability of slot on the google calendar.
-
-    You are very polite and helpful and always try to assist the user with the best of your ability.
-    You are very friendly and always try to make the user feel comfortable.
-    You are very professional and always try to maintain the professionalism.
-
-    Always clarify and get the precise information from the user before proceeding with the task.
-    If the user is not clear or not providing the precise information, ask for the information again.
-
-    You have tools at your disposal to assist the user with the task.
-'''
-
+import json
+from typing import Literal
+from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
+from langgraph.graph.graph import START
+from brain.agent_state import MessagesState
 from brain.llm_config.config import LLMConfig
-from langgraph.graph import StateGraph, START, END
-from langgraph.graph.message import add_messages
-from brain.tools.slots_tool import SlotTool
-from langgraph.graph import MessagesState
+from langgraph.graph import StateGraph, END
+from brain.llm_config.prompts import get_system_prompt
+from brain.tools.config import setup_agent_tools
 
-# class BookingAgent:
-#    def __init__(self, llm_config: LLMConfig):
-#       self.llm_config = LLMConfig()
-#       self.llm_with_tools = self.llm_config.llm.bind_tools(SlotTool.tool_by_name)
+from server.services.google_calendar import GoogleCalendarService
 
-#    def llm_call(self, messages: MessagesState):
-#       return {
-#         "messages": [
-#             llm_with_tools.invoke(
-#                 [
-#                     SystemMessage(
-#                         content="You are a helpful assistant tasked with performing arithmetic on a set of inputs."
-#                     )
-#                 ]
-#                 + state["messages"]
-#             )
-#         ]
-#     }
-   
-#    def create_graph(self, query: str):
+class BookingAgent:
+   def __init__(self,google_calendar_service: GoogleCalendarService):
+      llm_config = LLMConfig()
+      self.tools, self.tool_by_name = setup_agent_tools(google_calendar_service)
+      self.llm_with_tools = llm_config.llm.bind_tools(self.tools)
+      
+      agent_builder = StateGraph(MessagesState)
+      agent_builder.add_node("llm_call", self.llm_call)
+      agent_builder.add_node("environment", self.tool_node)
 
-#       state = StateGraph(START, END)
+      agent_builder.add_edge(START, "llm_call")
+      agent_builder.add_conditional_edges(
+         "llm_call",
+         self.should_continue,
+         {
+               # Name returned by should_continue : Name of next node to visit
+               "Action": "environment",
+               END: END,
+         }
+      )
+      agent_builder.add_edge("environment", "llm_call")
+      self._booking_agent = agent_builder.compile()
 
-#       # nodes
-#       state.add_node("user_query", self.user_query)
-#       state.add_node("llm_response", self.llm_response)
-#       state.add_node("tool_response", self.tool_response)
-#       state.add_node("book_slot", self.book_slot)
-#       state.add_node("get_slots", self.get_slots)
-#       state.add_node("cancel_slot", self.cancel_slot)
-#       state.add_node("reschedule_slot", self.reschedule_slot)
-#       state.add_edge(START, "user_query")
-#       state.add_edge("user_query", "llm_response")
-#       state.add_edge("llm_response", "tool_response")
-#       state.add_edge("tool_response", "book_slot")
-#       state.add_edge("tool_response", "get_slots")
-#       state.add_edge("tool_response", "cancel_slot")
+   def get_booking_agent(self):
+      return self._booking_agent
+
+   def llm_call(self,state: MessagesState):
+      print("--- Entering LLM Call Node ---") # <-- Add this
+      system_message = SystemMessage(content=get_system_prompt())
+      
+      # 2. Construct the full list of messages: [SystemMessage, *HistoryMessages]
+      full_message_list = [system_message] + state["messages"]
+      print("----------------------llm_call--------------------------------")
+      for m in state["messages"]:
+            m.pretty_print()
+      print("--------------------------------------------------------------")
+      # 3. Invoke the LLM with the complete message list
+      response_message = self.llm_with_tools.invoke(full_message_list)
+      print(f"LLM Response: {response_message}")
+      return {
+            "messages": full_message_list + [response_message]
+      }
+
+   def tool_node(self,state: dict):
+      '''Excecute the tool call'''
+      print("--- Entering Environment (Tool) Node ---")
+      for m in state["messages"]:
+            m.pretty_print()
+      result = [] + state["messages"]
+      print(f"Tool Call Request: {state['messages'][-1].tool_calls}")
+      for tool_call in state["messages"][-1].tool_calls:
+            tool = self.tool_by_name[tool_call["name"]]
+            observation = tool.invoke(tool_call["args"])
+            print(observation)
+            observation_str: str
+            if isinstance(observation, (dict, list)):
+                # Convert structured output to a JSON string
+                observation_str = json.dumps(observation)
+            elif observation is not None:
+                # Convert all other non-None objects (like Pydantic models, dates) to string
+                observation_str = str(observation)
+            else:
+                observation_str = "Tool executed successfully with no direct output." # Handle None/empty output
+            result.append(
+               ToolMessage(content=observation_str,tool_call_id=tool_call["id"],name=tool_call["name"])
+            )
+      print("--- Exiting Environment (Tool) Node ---")
+      return {"messages": result}
+
+   def should_continue(self,state: MessagesState) -> Literal["environment", END]:
+      """Decide if we should continue the loop or stop based upon whether the LLM made a tool call"""
+     
+
+      messages = state["messages"]
+      last_message = messages[-1]
+      print("-----------------------Should conitnue -------------------------------")
+      print(last_message.tool_calls)
+      print("----------------------------------------------------------------------")
+      # If the LLM makes a tool call, then perform an action
+      if last_message.tool_calls:
+            return "Action"
+      # Otherwise, we stop (reply to the user)
+
+      return END
