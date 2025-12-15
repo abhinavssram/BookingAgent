@@ -1,0 +1,5 @@
+- Fix the Agent State 
+- Create Sample UI to converse
+- Dockerise 
+- Deployment (vercel)
+- Demo video

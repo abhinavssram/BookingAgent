@@ -1,0 +1,130 @@
+{
+    "conversation_id": "7d401283-84ab-4ca5-bb2c-2ca5f993b10e",
+    "messages": [
+      {
+        "content": "\nYou are a helpful assistant that manages Google Calendar availability and bookings.\n**Task** is to help users with booking a slot in the google calendar\nYou know to book a slot you neeed to have informations about user preference of Date & Time\nYou also need to have the information about whether the asked slot is available or not in the calendar.\nYou have the following tools at your disposal: `get_slots`, `book_slot`, and `get_current_date`.\nALWAYS should answer back to user in the user timezone only, keep that in mind DONOT MENTION about TIMEZONE IT SHOULD be IMPLICIT as you have get_current_date tool.\n**DO NOT MENTION THE TIMEZONE AND ASK USER**\n\n<REASONING>\n[Write your step-by-step thought process here. Explain why you are asking for clarification OR why you are confident in the final answer and why a tool was or was not needed.]\n</REASONING>\n\n[Insert your polite, conversational response directly below the closing </REASONING> tag.]\nYou are very polite, professional, and always try to assist the user with the best of your ability.\n",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "type": "system",
+        "name": null,
+        "id": null
+      },
+      {
+        "content": "Hi, i want to book an appointment tomorrow for 1 hour",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "type": "human",
+        "name": null,
+        "id": null
+      },
+      {
+        "content": "",
+        "additional_kwargs": {
+          "reasoning_content": "We need to book an appointment tomorrow for 1 hour. Need to ask user for preferred time? The user just says \"tomorrow for 1 hour\". We need to know what time they want. Could propose some slots. But we need to know their timezone implicitly. We can get current date to know tomorrow date in user's timezone. Use get_current_date. Then ask user for preferred time window. Probably ask: what time tomorrow works? Or propose typical times. Let's get current date.",
+          "tool_calls": [
+            {
+              "id": "fc_d568ba91-1302-4e9a-8702-09db9aceec6c",
+              "function": {
+                "arguments": "{}",
+                "name": "get_current_date"
+              },
+              "type": "function"
+            }
+          ]
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 120,
+            "prompt_tokens": 745,
+            "total_tokens": 865,
+            "completion_time": 0.272720256,
+            "completion_tokens_details": {
+              "reasoning_tokens": 100
+            },
+            "prompt_time": 0.037252797,
+            "prompt_tokens_details": null,
+            "queue_time": 0.053208783,
+            "total_time": 0.309973053
+          },
+          "model_name": "openai/gpt-oss-120b",
+          "system_fingerprint": "fp_e88ce9c728",
+          "service_tier": "on_demand",
+          "finish_reason": "tool_calls",
+          "logprobs": null,
+          "model_provider": "groq"
+        },
+        "type": "ai",
+        "name": null,
+        "id": "lc_run--019b231e-74f0-7c11-b826-34319de77c9f-0",
+        "tool_calls": [
+          {
+            "name": "get_current_date",
+            "args": {},
+            "id": "fc_d568ba91-1302-4e9a-8702-09db9aceec6c",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 745,
+          "output_tokens": 120,
+          "total_tokens": 865,
+          "output_token_details": {
+            "reasoning": 100
+          }
+        }
+      },
+      {
+        "content": "Here is the user current time: 2025-12-15 23:15:57.921261+05:30 understand the format and get the timezone",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "type": "tool",
+        "name": "get_current_date",
+        "id": null,
+        "tool_call_id": "fc_d568ba91-1302-4e9a-8702-09db9aceec6c",
+        "artifact": null,
+        "status": "success"
+      },
+      {
+        "content": "Sure! I can set up a one‑hour appointment for you tomorrow. Could you let me know what time of day works best for you (e.g., 10 AM, 2 PM, etc.)? Once I have a preferred start time, I’ll check the calendar and confirm the booking.",
+        "additional_kwargs": {
+          "reasoning_content": "We have current date: 2025-12-15 23:15:57+05:30. User wants to book an appointment tomorrow for 1 hour. So tomorrow is 2025-12-16. Need to ask for preferred time? Could propose a time. Since we don't know user's preferred time, we should ask for a specific time window. We could suggest typical business hours. But we need to get slot availability. We need a specific start time to check. So ask user: what time tomorrow? Or propose a time. Probably ask for preferred time."
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 191,
+            "prompt_tokens": 801,
+            "total_tokens": 992,
+            "completion_time": 0.410665538,
+            "completion_tokens_details": {
+              "reasoning_tokens": 119
+            },
+            "prompt_time": 0.038986479,
+            "prompt_tokens_details": null,
+            "queue_time": 0.050631091,
+            "total_time": 0.449652017
+          },
+          "model_name": "openai/gpt-oss-120b",
+          "system_fingerprint": "fp_a28df4bce5",
+          "service_tier": "on_demand",
+          "finish_reason": "stop",
+          "logprobs": null,
+          "model_provider": "groq"
+        },
+        "type": "ai",
+        "name": null,
+        "id": "lc_run--019b231e-77a2-7453-8d73-364c13d458f9-0",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 801,
+          "output_tokens": 191,
+          "total_tokens": 992,
+          "output_token_details": {
+            "reasoning": 119
+          }
+        }
+      }
+    ],
+    "timezone": "Asia/Kolkata"
+  }

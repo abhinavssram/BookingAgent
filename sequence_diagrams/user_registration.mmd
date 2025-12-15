@@ -1,22 +1,22 @@
 sequenceDiagram
-    participant Doctor
+    participant User
     participant Browser
     participant AppUI
     participant Backend
     participant Google
 
-    Doctor->>AppUI: Open "Doctor Settings"
-    AppUI->>Doctor: Show "Connect Google Calendar"
-    Doctor->>AppUI: Click "Connect Google Calendar"
-    AppUI->>Backend: GET /doctors/doc_123/connect-calendar
+    User->>AppUI: Open "User Settings"
+    AppUI->>User: Show "Connect Google Calendar"
+    User->>AppUI: Click "Connect Google Calendar"
+    AppUI->>Backend: GET /Users/doc_123/connect-calendar
     Backend->>Browser: 302 Redirect to Google /authorize
     Browser->>Google: GET /authorize?client_id&scope&state=doc_123
-    Google-->>Doctor: Login + Consent Screen
-    Doctor->>Google: Approve consent
+    Google-->>User: Login + Consent Screen
+    User->>Google: Approve consent
     Google->>Browser: Redirect to /oauth/google/callback?code&state=doc_123
     Browser->>Backend: GET /oauth/google/callback?code&state
     Backend->>Google: POST /token (code)
     Google-->>Backend: access_token + refresh_token
     Backend->>Backend: Store tokens for doc_123
     Backend-->>Browser: "Calendar connected"
-    Browser-->>Doctor: Show success
+    Browser-->>User: Show success

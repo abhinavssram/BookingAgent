@@ -3,7 +3,6 @@ from typing import Any, Dict, List
 from pydantic.v1 import BaseModel, Field
 from server.services.google_calendar import GoogleCalendarService
 
-# --- Pydantic Schemas for Tool Arguments ---
 
 class GetSlotsInput(BaseModel):
     """Input for getting available calendar slots."""
@@ -38,7 +37,6 @@ class SlotTool:
         """
         # The service call needs to be updated to accept the new arguments
         # slots = self.google_calendar_service.get_slots(time_min, time_max) # Example
-        # You will need to define this service method to accept time_min, time_max
         return self.google_calendar_service.get_slots(time_min, time_max)
     
     def book_slot(self, summary: str, description: str, start: DateTimeInput, end: DateTimeInput) -> Dict[str, Any]:
