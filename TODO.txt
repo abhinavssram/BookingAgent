@@ -1,4 +1,4 @@
-- Fix the Agent State 
+- Fix the Agent State  --> Done
 - Create Sample UI to converse
 - Dockerise 
 - Deployment (vercel)
