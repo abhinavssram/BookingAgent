@@ -34,13 +34,14 @@ class SlotTool:
         Get the busy slots from the Google calendar.
         Use this tool to check the user's availability within a specific time range.
         The times must be provided in UTC (Z) format.
+        The tool gives you the busy time periods check if the user given time periods coincide with any of the busy slots.
         """
         # The service call needs to be updated to accept the new arguments
         # slots = self.google_calendar_service.get_slots(time_min, time_max) # Example
         # You will need to define this service method to accept time_min, time_max
         return self.google_calendar_service.get_slots(time_min, time_max)
     
-    def book_slot(self, summary: str, description: str, start: Dict[str, str], end: Dict[str, str]) -> Dict[str, Any]:
+    def book_slot(self, summary: str, description: str, start: DateTimeInput, end: DateTimeInput) -> Dict[str, Any]:
         """
         Book a new event slot on the Google calendar.
         Requires summary, description, and start/end times in ISO 8601 format with timezone offset.
@@ -49,8 +50,12 @@ class SlotTool:
         slot = {
             "summary": summary,
             "description": description,
-            "start": start,
-            "end": end
+            "start": {
+                "dateTime": start.dateTime
+            },
+            "end": {
+                "dateTime": end.dateTime
+            }
         }
         response = self.google_calendar_service.book_slot(slot)
         return response
