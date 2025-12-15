@@ -97,15 +97,31 @@ def converse(email: str, user_input: dict, db: Session = Depends(get_db)):
         google_calendar_service = GoogleCalendarService(creds)
         booking_agent = BookingAgent(google_calendar_service).get_booking_agent()
 
-        if email not in user_messages:
-            user_messages[email] = []
+        conversation_id = user_input.get("conversation_id",None)
+        timezone = user_input["timezone"]
+        query = user_input["query"]
+        if not conversation_id:
+            conversation_id = str(uuid.uuid4())
+        
+        config = {"configurable": {"thread_id": conversation_id}}
 
-        messages = user_messages[email] 
-        messages.append(HumanMessage(content=user_input["query"]))
-        messages = booking_agent.invoke({"messages": messages})
-        for m in messages["messages"]:
-            m.pretty_print()
-        return {"messages": messages}
+        initial_state = {
+            "messages": [HumanMessage(content=query)],
+            "conversation_id": conversation_id,
+            "timezone": timezone
+        }
+        if booking_agent.checkpointer:
+            # Checkpointer will merge with existing state automatically
+            result = booking_agent.invoke(initial_state, config=config)
+        else:
+            # Without checkpointer, just invoke normally
+            result = booking_agent.invoke(initial_state)
+        
+        return {
+            "conversation_id": conversation_id,
+            "messages": result.get("messages", []),
+            "timezone": result.get("timezone", timezone)
+        }
     except Exception as e:
         print(f"Error in conversation {email}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to talk: {e}")

@@ -1,14 +1,36 @@
 import json
 from typing import Literal
 from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
-from langgraph.graph.graph import START
 from brain.agent_state import MessagesState
 from brain.llm_config.config import LLMConfig
-from langgraph.graph import StateGraph, END
+from langgraph.graph import START, StateGraph, END
 from brain.llm_config.prompts import get_system_prompt
 from brain.tools.config import setup_agent_tools
-
+from dotenv import load_dotenv
+import os
 from server.services.google_calendar import GoogleCalendarService
+from langgraph.checkpoint.postgres import PostgresSaver
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+CHECKPOINTER = None
+if DATABASE_URL:
+    try:
+      # 1. Instantiate the saver
+      _cm = PostgresSaver.from_conn_string(DATABASE_URL)
+      CHECKPOINTER = _cm.__enter__()    # enter once, keep alive
+      # 2. CRITICAL: Call setup() to create the tables
+      # This must be done the first time it is run.
+      CHECKPOINTER.setup() 
+      print("INFO: LangGraph Postgres checkpointer initialized and tables ensured.")
+        
+    except Exception as e:
+        print(f"ERROR: Failed to initialize Postgres checkpointer: {e}")
+        CHECKPOINTER = None # Disable if setup fails
+        
+else:
+    print("WARNING: DATABASE_URL not set, checkpointer disabled")
 
 class BookingAgent:
    def __init__(self,google_calendar_service: GoogleCalendarService):
@@ -31,34 +53,37 @@ class BookingAgent:
          }
       )
       agent_builder.add_edge("environment", "llm_call")
-      self._booking_agent = agent_builder.compile()
+
+      if CHECKPOINTER:
+         self._booking_agent = agent_builder.compile(checkpointer=CHECKPOINTER)
+      else:
+         self._booking_agent = agent_builder.compile()
 
    def get_booking_agent(self):
       return self._booking_agent
 
    def llm_call(self,state: MessagesState):
-      print("--- Entering LLM Call Node ---") # <-- Add this
-      system_message = SystemMessage(content=get_system_prompt())
+      print("--- Entering LLM Call Node ---")
+      curr_messages = state.get("messages", [])
       
-      # 2. Construct the full list of messages: [SystemMessage, *HistoryMessages]
-      full_message_list = [system_message] + state["messages"]
-      print("----------------------llm_call--------------------------------")
-      for m in state["messages"]:
-            m.pretty_print()
-      print("--------------------------------------------------------------")
+      has_system_message = any(isinstance(msg, SystemMessage) for msg in curr_messages)
+      if not has_system_message:
+         system_message = SystemMessage(content=get_system_prompt())
+         full_message_list = [system_message] + curr_messages
+      else:
+         # System message already exists, don't add it again
+         full_message_list = curr_messages
       # 3. Invoke the LLM with the complete message list
       response_message = self.llm_with_tools.invoke(full_message_list)
       print(f"LLM Response: {response_message}")
       return {
-            "messages": full_message_list + [response_message]
+            "messages": [response_message]
       }
 
    def tool_node(self,state: dict):
       '''Excecute the tool call'''
       print("--- Entering Environment (Tool) Node ---")
-      for m in state["messages"]:
-            m.pretty_print()
-      result = [] + state["messages"]
+      result = []
       print(f"Tool Call Request: {state['messages'][-1].tool_calls}")
       for tool_call in state["messages"][-1].tool_calls:
             tool = self.tool_by_name[tool_call["name"]]
@@ -81,7 +106,6 @@ class BookingAgent:
 
    def should_continue(self,state: MessagesState) -> Literal["environment", END]:
       """Decide if we should continue the loop or stop based upon whether the LLM made a tool call"""
-     
 
       messages = state["messages"]
       last_message = messages[-1]
