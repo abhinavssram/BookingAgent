@@ -15,4 +15,7 @@ Final working pattern:
 - Use StructuredTool.from_function(instance.method, ...) in config.py to create tools that preserve binding.
 
 
-Always maintain the messagesInfo all messages between user, human, AI, tool messages of an user in a flow  
+Always maintain the messagesInfo all messages between user, human, AI, tool messages of an user in a flow 
+
+
+https://mirror-feeling-d80.notion.site/Workflow-And-Agents-17e808527b1780d792a0d934ce62bee6

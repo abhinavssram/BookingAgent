@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Booking Agent</title>
+  <link rel="stylesheet" href="/frontend/styles.css" />
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+  
+    <!-- Visible by default -->
+    <div id="connectContainer" class="center-container">
+      <button class="connect-btn" onclick="connectCalendar()">
+        Connect Google Calendar
+      </button>
+    </div>
+  
+    <!-- Hidden by default -->
+    <div id="chatWrapper" class="chat-wrapper hidden">
+      <div id="chatHistory" class="chat-history"></div>
+    </div>
+  
+    <div id="loader" class="loader hidden">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  
+    <div id="chatInputContainer" class="chat-input hidden">
+      <input
+        id="chatInput"
+        type="text"
+        placeholder="Book a meeting for tomorrow at 10 AM..."
+        onkeydown="handleKey(event)"
+      />
+      <button onclick="sendMessage()">➤</button>
+    </div>
+  
+    <script src="/frontend/app.js"></script>
+  </body>
+  
+</html>
