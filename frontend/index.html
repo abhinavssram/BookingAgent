@@ -3,41 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <title>Booking Agent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="/frontend/styles.css" />
 </head>
 
 <body>
-    <div class="bg-gradient"></div>
-  
-    <!-- Visible by default -->
-    <div id="connectContainer" class="center-container">
-      <button class="connect-btn" onclick="connectCalendar()">
-        Connect Google Calendar
-      </button>
-    </div>
-  
-    <!-- Hidden by default -->
-    <div id="chatWrapper" class="chat-wrapper hidden">
+  <div class="bg-gradient"></div>
+
+  <div id="connectContainer" class="center-container">
+    <button class="connect-btn" onclick="connectCalendar()">
+      Connect Google Calendar
+    </button>
+  </div>
+
+  <div id="chatWrapper" class="chat-wrapper hidden">
+    <div class="chat-column">
       <div id="chatHistory" class="chat-history"></div>
+
+      <div id="loader" class="loader hidden">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+
+      <div id="chatInputContainer" class="chat-input">
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="Book a meeting for tomorrow at 10 AM..."
+          onkeydown="handleKey(event)"
+        />
+        <button id="sendBtn" disabled onclick="sendMessage()">➤</button>
+      </div>
     </div>
-  
-    <div id="loader" class="loader hidden">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-    </div>
-  
-    <div id="chatInputContainer" class="chat-input hidden">
-      <input
-        id="chatInput"
-        type="text"
-        placeholder="Book a meeting for tomorrow at 10 AM..."
-        onkeydown="handleKey(event)"
-      />
-      <button onclick="sendMessage()">➤</button>
-    </div>
-  
-    <script src="/frontend/app.js"></script>
-  </body>
-  
+  </div>
+
+  <script src="/frontend/app.js"></script>
+</body>
 </html>

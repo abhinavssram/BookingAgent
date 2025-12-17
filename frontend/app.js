@@ -2,9 +2,15 @@ const connectContainer = document.getElementById("connectContainer");
 const chatWrapper = document.getElementById("chatWrapper");
 const chatInputContainer = document.getElementById("chatInputContainer");
 const chatHistory = document.getElementById("chatHistory");
-const loader = document.getElementById("loader");
+const chatInput = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
 
 let conversationId = null;
+let typingBubble = null;
+
+chatInput.addEventListener("input", () => {
+  sendBtn.disabled = input.value.trim().length === 0;
+});
 
 fetch("/me")
   .then(res => {
@@ -14,19 +20,15 @@ fetch("/me")
   .then(showChat)
   .catch(showConnect);
 
-  function showChat() {
-    connectContainer.classList.add("hidden");
-    chatWrapper.classList.remove("hidden");
-    chatInputContainer.classList.remove("hidden");
-  }
-  
-  function showConnect() {
-    connectContainer.classList.remove("hidden");
-    chatWrapper.classList.add("hidden");
-    chatInputContainer.classList.add("hidden");
-    loader.classList.add("hidden");
-  }
-  
+function showChat() {
+  connectContainer.classList.add("hidden");
+  chatWrapper.classList.remove("hidden");
+}
+
+function showConnect() {
+  connectContainer.classList.remove("hidden");
+  chatWrapper.classList.add("hidden");
+}
 
 function connectCalendar() {
   window.location.href = "/connect-calendar";
@@ -37,15 +39,14 @@ function handleKey(e) {
 }
 
 function sendMessage() {
-  const input = document.getElementById("chatInput");
-  const text = input.value.trim();
+  const text = chatInput.value.trim();
   if (!text) return;
 
   appendMessage(text, "user");
-  input.value = "";
+  chatInput.value = "";
+  chatInput.disabled = true;
 
-  chatInputContainer.classList.add("hidden");
-  loader.classList.remove("hidden");
+  showTyping();
 
   fetch("/talk", {
     method: "POST",
@@ -58,27 +59,74 @@ function sendMessage() {
   })
     .then(res => res.json())
     .then(data => {
-      loader.classList.add("hidden");
-      chatInputContainer.classList.remove("hidden");
+      removeTyping();
+      chatInput.disabled = false;
+      sendBtn.disabled = chatInput.value.trim().length === 0;
+      chatInput.focus();
 
       if (data.conversation_id) {
         conversationId = data.conversation_id;
       }
 
       const last = data.messages?.at(-1);
-      if (last?.content) appendMessage(last.content, "ai");
+      if (last?.content) {
+        appendMessage(last.content, "ai", true);
+      }
     })
     .catch(() => {
-      loader.classList.add("hidden");
-      chatInputContainer.classList.remove("hidden");
-      appendMessage("Error occurred.", "ai");
+      removeTyping();
+      chatInput.disabled = false;
+      appendMessage("Something went wrong.", "ai");
     });
 }
 
-function appendMessage(text, type) {
-  const div = document.createElement("div");
-  div.className = `message ${type}`;
-  div.textContent = text;
-  chatHistory.appendChild(div);
+/* ---------- Messages ---------- */
+function appendMessage(text, type, markdown = false) {
+  const row = document.createElement("div");
+  row.className = `message-row ${type}`;
+
+  const bubble = document.createElement("div");
+  bubble.className = `message ${type}`;
+
+  if (markdown) {
+    bubble.innerHTML = renderMarkdown(text);
+  } else {
+    bubble.textContent = text;
+  }
+
+  row.appendChild(bubble);
+  chatHistory.appendChild(row);
   chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+
+
+function showTyping() {
+  typingBubble = document.createElement("div");
+  typingBubble.className = "message ai typing";
+
+  typingBubble.innerHTML = `
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+  `;
+
+  chatHistory.appendChild(typingBubble);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function removeTyping() {
+  if (typingBubble) {
+    typingBubble.remove();
+    typingBubble = null;
+  }
+}
+
+
+function renderMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/^- (.*)$/gm, "• $1")
+    .replace(/\n/g, "<br>");
 }
