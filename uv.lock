@@ -90,7 +90,6 @@ dependencies = [
     { name = "langchain-groq" },
     { name = "langgraph" },
     { name = "langgraph-checkpoint-postgres" },
-    { name = "psycopg", extra = ["binary"] },
     { name = "psycopg2-binary" },
     { name = "python-multipart" },
     { name = "sqlalchemy" },
@@ -100,6 +99,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "ipykernel" },
+    { name = "psycopg", extra = ["binary"] },
 ]
 
 [package.metadata]
@@ -115,7 +115,6 @@ requires-dist = [
     { name = "langchain-groq", specifier = ">=0.1.5" },
     { name = "langgraph", specifier = ">=0.0.40" },
     { name = "langgraph-checkpoint-postgres", specifier = ">=1.0.0" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.1" },
     { name = "psycopg2-binary", specifier = ">=2.9.9" },
     { name = "python-multipart", specifier = ">=0.0.6" },
     { name = "sqlalchemy", specifier = ">=2.0.0" },
@@ -123,7 +122,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "ipykernel", specifier = ">=7.1.0" }]
+dev = [
+    { name = "ipykernel", specifier = ">=7.1.0" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.1" },
+]
 
 [[package]]
 name = "cachetools"

@@ -32,6 +32,14 @@ A booking assistant that connects to your Google Calendar and lets you chat to *
 ## Install
 - activate venv
 - uv sync
+- connect pgAdmin desktop for visualise data
 
 ## Run locally
+- using postgres for now 
+- podman run --name my-pg \
+  -e POSTGRES_PASSWORD=secret \
+  -e POSTGRES_USER=myuser \
+  -e POSTGRES_DB=mydb \
+  -p 5433:5432 \
+  -d postgres:16
 - uv run uvicorn server.api:app --reload

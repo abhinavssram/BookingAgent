@@ -75,7 +75,6 @@ class BookingAgent:
          full_message_list = curr_messages
       # 3. Invoke the LLM with the complete message list
       response_message = self.llm_with_tools.invoke(full_message_list)
-      print(f"LLM Response: {response_message}")
       return {
             "messages": [response_message]
       }

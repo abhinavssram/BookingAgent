@@ -3,6 +3,7 @@ This file should contain the endpoints for the application user registration & l
 google calendar api documentation: https://developers.google.com/calendar/api/guides/overview
 '''
 import uuid
+from dotenv import load_dotenv
 from fastapi import APIRouter, Cookie, Depends, HTTPException
 from starlette.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -12,8 +13,10 @@ from server.db import User
 from server.services.google_calendar import GoogleCalendarService
 from server.services.google_oauth import google_oauth_service
 from langchain_core.messages import HumanMessage
-
+import os
 router = APIRouter()
+
+load_dotenv()
 
 def get_current_user(
     booking_session: str = Cookie(None),
@@ -47,14 +50,14 @@ def oauth_callback(code: str, state: str, db: Session = Depends(get_db)):
     user = google_oauth_service.save_tokens(db, session_id, google_email, tokens)
     
     response = RedirectResponse(url="/")
-
+    secure_var = os.environ.get("ENV") != "local"
     # 🔑 Store identity in HTTP-only cookie
     response.set_cookie(
         key="booking_session",
         value=user.id,              # or UUID
         httponly=True,
         samesite="lax",
-        secure=False  # True in prod (HTTPS)
+        secure=secure_var
     )
 
     return response
@@ -168,6 +171,7 @@ def conversev1(email: str, user_input: dict, db: Session = Depends(get_db)):
             "timezone": timezone
         }
         if booking_agent.checkpointer:
+            print(f"Merge checkpoint")
             # Checkpointer will merge with existing state automatically
             result = booking_agent.invoke(initial_state, config=config)
         else:
