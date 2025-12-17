@@ -75,6 +75,7 @@ class BookingAgent:
          full_message_list = curr_messages
       # 3. Invoke the LLM with the complete message list
       response_message = self.llm_with_tools.invoke(full_message_list)
+      print(response_message.pretty_print)
       return {
             "messages": [response_message]
       }
@@ -86,8 +87,13 @@ class BookingAgent:
       print(f"Tool Call Request: {state['messages'][-1].tool_calls}")
       for tool_call in state["messages"][-1].tool_calls:
             tool = self.tool_by_name[tool_call["name"]]
-            observation = tool.invoke(tool_call["args"])
-            print(observation)
+            if tool.name == "get_current_date":
+                  observation = (
+                     f"User current time is {state.get('client_time')} "
+                     f"in timezone {state.get("timezone")}"
+                  )
+            else:
+               observation = tool.invoke(tool_call["args"])
             observation_str: str
             if isinstance(observation, (dict, list)):
                 # Convert structured output to a JSON string

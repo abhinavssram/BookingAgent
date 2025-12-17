@@ -10,3 +10,4 @@ class MessagesState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages] #add_messages automaticaly adds 
     conversation_id: str
     timezone: str
+    client_time: str

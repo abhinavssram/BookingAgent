@@ -116,6 +116,7 @@ def converse(user_input: dict,user: User = Depends(get_current_user), db: Sessio
 
         conversation_id = user_input.get("conversation_id",None)
         timezone = user_input["timezone"]
+        user_time = user_input["client_time"]
         query = user_input["query"]
         if conversation_id=="" or not conversation_id:
             conversation_id = str(uuid.uuid4())
@@ -125,7 +126,8 @@ def converse(user_input: dict,user: User = Depends(get_current_user), db: Sessio
         initial_state = {
             "messages": [HumanMessage(content=query)],
             "conversation_id": conversation_id,
-            "timezone": timezone
+            "timezone": timezone,
+            "client_time": user_time
         }
         if booking_agent.checkpointer:
             # Checkpointer will merge with existing state automatically

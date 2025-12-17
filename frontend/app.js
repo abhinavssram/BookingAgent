@@ -9,7 +9,7 @@ let conversationId = null;
 let typingBubble = null;
 
 chatInput.addEventListener("input", () => {
-  sendBtn.disabled = input.value.trim().length === 0;
+  sendBtn.disabled = chatInput.value.trim().length === 0;
 });
 
 fetch("/me")
@@ -39,12 +39,15 @@ function handleKey(e) {
 }
 
 function sendMessage() {
+  if (sendBtn.disabled) return;
+
   const text = chatInput.value.trim();
   if (!text) return;
 
   appendMessage(text, "user");
   chatInput.value = "";
   chatInput.disabled = true;
+  sendBtn.disabled = true;
 
   showTyping();
 
@@ -53,7 +56,8 @@ function sendMessage() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query: text,
-      timezone: "Asia/Kolkata",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      client_time: new Date().toISOString(),
       conversation_id: conversationId
     })
   })
@@ -61,7 +65,7 @@ function sendMessage() {
     .then(data => {
       removeTyping();
       chatInput.disabled = false;
-      sendBtn.disabled = chatInput.value.trim().length === 0;
+      sendBtn.disabled = true;
       chatInput.focus();
 
       if (data.conversation_id) {
@@ -76,6 +80,7 @@ function sendMessage() {
     .catch(() => {
       removeTyping();
       chatInput.disabled = false;
+      sendBtn.disabled = true;
       appendMessage("Something went wrong.", "ai");
     });
 }
