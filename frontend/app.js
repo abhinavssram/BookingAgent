@@ -4,13 +4,31 @@ const chatInputContainer = document.getElementById("chatInputContainer");
 const chatHistory = document.getElementById("chatHistory");
 const chatInput = document.getElementById("chatInput");
 const sendBtn = document.getElementById("sendBtn");
-
+const introTextEl = document.getElementById("introText");
+const introMessage =
+  "Hello, I'm your booking assistant!";
 let conversationId = null;
 let typingBubble = null;
 
 chatInput.addEventListener("input", () => {
   sendBtn.disabled = chatInput.value.trim().length === 0;
 });
+
+
+
+let introIndex = 0;
+
+function typeIntro() {
+  if (!introTextEl) return;
+
+  if (introIndex < introMessage.length) {
+    introTextEl.textContent += introMessage[introIndex];
+    introIndex++;
+    setTimeout(typeIntro, 35);
+  }
+}
+
+typeIntro();
 
 fetch("/me")
   .then(res => {
