@@ -10,6 +10,10 @@ A booking assistant that connects to your Google Calendar and lets you chat to *
 2. **Chat to book / check availability**
    - User chats with the LLM to find open times and book an event on their calendar.
 
+## Demo
+
+[![Demo Video](https://img.youtube.com/vi/J9XwbvMvndQ/0.jpg)](https://youtu.be/J9XwbvMvndQ)
+
 ## Architecture
 
 ![BookingAgent architecture](sequence_diagrams/hld.png)
@@ -51,3 +55,4 @@ fly deploy --no-cache
 ## Access it 
 
 https://bookingagent.fly.dev/
+
