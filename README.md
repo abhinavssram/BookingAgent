@@ -43,3 +43,11 @@ A booking assistant that connects to your Google Calendar and lets you chat to *
   -p 5433:5432 \
   -d postgres:16
 - uv run uvicorn server.api:app --reload
+
+## Deployment
+fly deploy --no-cache
+
+
+## Access it 
+
+https://bookingagent.fly.dev/
