@@ -13,8 +13,22 @@ from server.db import User
 from server.services.google_calendar import GoogleCalendarService
 from server.services.google_oauth import google_oauth_service
 from langchain_core.messages import HumanMessage
+from langgraph.types import Command
 import os
 router = APIRouter()
+
+
+def _extract_interrupt_payload(booking_agent, result: dict, config: dict):
+    """Return interrupt payload when the graph is paused for HITL."""
+    interrupts = result.get("__interrupt__")
+    if interrupts:
+        return interrupts[0].value
+
+    snapshot = booking_agent.get_state(config)
+    if snapshot.interrupts:
+        return snapshot.interrupts[0].value
+
+    return None
 
 load_dotenv()
 
@@ -114,32 +128,48 @@ def converse(user_input: dict,user: User = Depends(get_current_user), db: Sessio
         google_calendar_service = GoogleCalendarService(creds)
         booking_agent = BookingAgent(google_calendar_service).get_booking_agent()
 
-        conversation_id = user_input.get("conversation_id",None)
+        conversation_id = user_input.get("conversation_id", None)
         timezone = user_input["timezone"]
         user_time = user_input["client_time"]
-        query = user_input["query"]
-        if conversation_id=="" or not conversation_id:
+        if conversation_id == "" or not conversation_id:
             conversation_id = str(uuid.uuid4())
-        
+
         config = {"configurable": {"thread_id": conversation_id}}
 
-        initial_state = {
-            "messages": [HumanMessage(content=query)],
-            "conversation_id": conversation_id,
-            "timezone": timezone,
-            "client_time": user_time
-        }
-        if booking_agent.checkpointer:
-            # Checkpointer will merge with existing state automatically
-            result = booking_agent.invoke(initial_state, config=config)
+        # Path A: Resuming after user clicked Confirm/Cancel
+        if user_input.get("resume") is not None:
+            result = booking_agent.invoke(
+                Command(resume=user_input["resume"]),
+                config=config,
+            )
+        # Path B: Normal new user message
         else:
-            # Without checkpointer, just invoke normally
-            result = booking_agent.invoke(initial_state)
-        
+            query = user_input.get("query")
+            if not query:
+                raise HTTPException(status_code=400, detail="query is required")
+
+            initial_state = {
+                "messages": [HumanMessage(content=query)],
+                "conversation_id": conversation_id,
+                "timezone": timezone,
+                "client_time": user_time,
+            }
+            result = booking_agent.invoke(initial_state, config=config)
+
+        interrupt_payload = _extract_interrupt_payload(booking_agent, result, config)
+        if interrupt_payload:
+            print(f"INFO: Graph interrupted for confirmation: {interrupt_payload}")
+            return {
+                "conversation_id": conversation_id,
+                "status": "awaiting_confirmation",
+                "interrupt": interrupt_payload,
+            }
+
         return {
             "conversation_id": conversation_id,
+            "status": "completed",
             "messages": result.get("messages", []),
-            "timezone": result.get("timezone", timezone)
+            "timezone": result.get("timezone", timezone),
         }
     except Exception as e:
         print(f"Error in conversation {user.id}: {e}")

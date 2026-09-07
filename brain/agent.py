@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import os
 from server.services.google_calendar import GoogleCalendarService
 from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.types import interrupt
 
 load_dotenv()
 
@@ -87,6 +88,28 @@ class BookingAgent:
       print(f"Tool Call Request: {state['messages'][-1].tool_calls}")
       for tool_call in state["messages"][-1].tool_calls:
             tool = self.tool_by_name[tool_call["name"]]
+            if tool.name == "book_slot":
+               # 1. Pause and surface booking details to the UI
+               approval = interrupt({
+                  "type": "booking_confirmation",
+                  "summary": tool_call["args"]["summary"],
+                  "description": tool_call["args"]["description"],
+                  "start": tool_call["args"]["start"],
+                  "end": tool_call["args"]["end"],
+                  "message": (
+                     f"Confirm booking: {tool_call['args']['summary']} "
+                     f"from {tool_call['args']['start']['dateTime']} "
+                     f"to {tool_call['args']['end']['dateTime']}?"
+                  ),
+               })
+               # 2. User declined
+               if not approval or not approval.get("approved"):
+                  result.append(ToolMessage(
+                     content="User declined the booking. Do not book the slot.",
+                     tool_call_id=tool_call["id"],
+                     name=tool_call["name"],
+                  ))
+                  continue
             if tool.name == "get_current_date":
                   observation = (
                      f"User current time is {state.get('client_time')} "
